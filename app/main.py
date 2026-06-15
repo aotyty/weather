@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
 
 @app.get("/weather/")
-async def get_weather(request: Request, city: str = Query(..., min_length=1)):
+async def weather_endpoint(request: Request, city: str = Query(..., min_length=1)):
     logger.info(f"Incoming request for city {city}")
     cached = await get_cached(f"weather:{city.lower()}") 
     if cached:
