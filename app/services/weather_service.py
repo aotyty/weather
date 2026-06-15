@@ -1,9 +1,14 @@
 import httpx
+import logging
+
 from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
 
 TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 
 async def get_coordinates(client: httpx.AsyncClient, city:str) -> tuple[float, float]:
+    logger.info(f"Fetching coordinates for {city}")
     try:
         response = await client.get(
             "https://nominatim.openstreetmap.org/search",
@@ -13,20 +18,24 @@ async def get_coordinates(client: httpx.AsyncClient, city:str) -> tuple[float, f
         )
         response.raise_for_status()
     except httpx.TimeoutException:
+        logger.error(f"Timeout fetching coordinates for {city}")
         raise HTTPException(status_code=504, 
                         detail="Geocoding service timed out")
     except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error fetching coordinates: {e.response.status_code}")
         raise HTTPException(status_code=502, 
                         detail=f"Geocoding error: {e.response.status_code}")
 
     data = response.json()
     if not data:
+        logger.warning(f"City not found: {city}")
         raise HTTPException(status_code=404, 
                         detail=f"City {city} not found")
 
     return float(data[0]["lat"]), float(data[0]["lon"])
 
 async def get_current_weather(client: httpx.AsyncClient, lat: float, lon: float) -> dict:
+    logger.info(f"Fetching weather for coordinates: {lat}, {lon}")
     try:
         response = await client.get(
             "https://api.open-meteo.com/v1/forecast",
@@ -40,10 +49,13 @@ async def get_current_weather(client: httpx.AsyncClient, lat: float, lon: float)
         )
         response.raise_for_status()
     except httpx.TimeoutException:
+        logger.error(f"Timeout fetching weather for: {lat}, {lon}")
         raise HTTPException(status_code=504, 
                         detail="Weather service timed out")
     except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error fetching weather {e.response.status_code}")
         raise HTTPException(status_code=502, 
                         detail=f"Weather API error: {e.response.status_code}")
 
+    logger.info(f"Weather data received  for: {lat}, {lon}")
     return response.json().get("current", {})
