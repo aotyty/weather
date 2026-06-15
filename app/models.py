@@ -8,3 +8,15 @@ class Weather(BaseModel):
     wind_speed: Optional[float] = None
     city: str
 
+class ForecastDay(BaseModel):
+    date: str
+    temperature_max: float
+    temperature_min: float
+    wind_speed_max: float
+    precipitation: float
+
+class Forecast(BaseModel):
+    city: str
+    latitude: float
+    longitude: float
+    days: list[ForecastDay]
