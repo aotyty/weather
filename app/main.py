@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query, Request
 
-from app.models import Weather, ForecastDay, Forecast
+from app.schemas import Weather, ForecastDay, Forecast
 from app.services.weather_service import get_coordinates, get_current_weather, get_forecast
 from app.services.http_client import lifespan
 from app.services.cache_service import get_cached, set_cached
