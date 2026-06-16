@@ -1,4 +1,5 @@
 from httpx import AsyncClient, ASGITransport
+from unittest.mock import AsyncMock, patch
 from app.main import app
 
 import pytest 
@@ -13,3 +14,10 @@ async def client():
             base_url="http://test"
         ) as ac:
             yield ac
+
+@pytest.fixture()
+def mock_redis():
+    with patch("app.services.cache_service.redis_client") as mock:
+        mock.get = AsyncMock(return_value=None)
+        mock.set = AsyncMock(return_value=True)
+        yield mock
