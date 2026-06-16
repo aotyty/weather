@@ -4,6 +4,8 @@ from app.schemas import Weather, ForecastDay, Forecast
 from app.services.weather_service import get_coordinates, get_current_weather, get_forecast
 from app.services.http_client import lifespan
 from app.services.cache_service import get_cached, set_cached
+from app.db.database import AsyncSessionLocal
+from app.db.crud import save_request
 
 import logging
 
@@ -17,6 +19,14 @@ async def weather_endpoint(request: Request, city: str = Query(..., min_length=1
     logger.info(f"Incoming request for city {city}")
     cached = await get_cached(f"weather:{city.lower()}") 
     if cached:
+        async with AsyncSessionLocal() as session:
+            await save_request(
+                session=session,
+                city=city,
+                temperature=cached.get("temperature"),
+                wind_speed=cached.get("wind_speed"),
+                from_cache=True,
+            )
         return Weather(**cached)
 
     client = request.app.state.client
@@ -32,6 +42,14 @@ async def weather_endpoint(request: Request, city: str = Query(..., min_length=1
     )
 
     await set_cached(f"weather:{city.lower()}", weather.model_dump())
+    async with AsyncSessionLocal() as session:
+        await save_request(
+            session=session,
+            city=city,
+            temperature=weather.temperature,
+            wind_speed=weather.wind_speed,
+            from_cache=True,
+        )
     return weather
 
 @app.get("/forecast/")
