@@ -48,7 +48,7 @@ async def weather_endpoint(request: Request, city: str = Query(..., min_length=1
             city=city,
             temperature=weather.temperature,
             wind_speed=weather.wind_speed,
-            from_cache=True,
+            from_cache=False,
         )
     return weather
 
