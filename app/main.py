@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Query, Request
+from sqlalchemy import text 
 
 from app.schemas import Weather, ForecastDay, Forecast
 from app.services.weather_service import get_coordinates, get_current_weather, get_forecast
 from app.services.http_client import lifespan
-from app.services.cache_service import get_cached, set_cached
+from app.services.cache_service import get_cached, set_cached, redis_client
 from app.db.database import AsyncSessionLocal
 from app.db.crud import save_request
 
@@ -13,6 +14,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(lifespan=lifespan)
+
+@app.get("/health/")
+async def health_status():
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+        await redis_client.ping()
+        return {"status": "ok", "database": "ok", "cache": "ok"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
 
 @app.get("/weather/")
 async def weather_endpoint(request: Request, city: str = Query(..., min_length=1)):
@@ -80,7 +91,6 @@ async def forecast_endpoint(request: Request, city: str = Query(..., min_length=
         longitude=lon,
         days=days,
     )
-
 
     await set_cached(f"forecast:{city.lower()}", forecast.model_dump())
     return forecast
