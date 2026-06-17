@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Query, Request
 from sqlalchemy import text 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
 
 from app.schemas import Weather, ForecastDay, Forecast
 from app.services.weather_service import get_coordinates, get_current_weather, get_forecast
@@ -15,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(lifespan=lifespan)
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 @app.get("/health/")
 async def health_status():
     try:
@@ -26,7 +32,8 @@ async def health_status():
         return {"status": "error", "detail": str(e)}
 
 @app.get("/weather/")
-async def weather_endpoint(request: Request, city: str = Query(..., min_length=1)):
+@limiter.limit("10/minute")
+async def weather_endpoint(request: Request, city: str = Query(..., min_length=1, max_length=100)):
     logger.info(f"Incoming request for city {city}")
     cached = await get_cached(f"weather:{city.lower()}") 
     if cached:
@@ -64,7 +71,8 @@ async def weather_endpoint(request: Request, city: str = Query(..., min_length=1
     return weather
 
 @app.get("/forecast/")
-async def forecast_endpoint(request: Request, city: str = Query(..., min_length=1)):
+@limiter.limit("10/minute")
+async def forecast_endpoint(request: Request, city: str = Query(..., min_length=1, max_length=100)):
     logger.info(f"Incoming request for city {city}")
     cached = await get_cached(f"forecast:{city.lower()}") 
     if cached:
