@@ -57,7 +57,7 @@ async def get_current_weather(client: httpx.AsyncClient, lat: float, lon: float)
         raise HTTPException(status_code=502, 
                         detail=f"Weather API error: {e.response.status_code}")
 
-    logger.info(f"Weather data received  for: {lat}, {lon}")
+    logger.info(f"Weather data received for: {lat}, {lon}")
     return response.json().get("current", {})
 
 async def get_forecast(client: httpx.AsyncClient, lat: float, lon: float) -> dict:
@@ -83,5 +83,5 @@ async def get_forecast(client: httpx.AsyncClient, lat: float, lon: float) -> dic
         raise HTTPException(status_code=502, 
                         detail=f"Weather API error: {e.response.status_code}")
 
-    logger.info(f"Forecast data received  for: {lat}, {lon}")
+    logger.info(f"Forecast data received for: {lat}, {lon}")
     return response.json().get("daily", {})
