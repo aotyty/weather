@@ -18,7 +18,6 @@ curl http://localhost:8000/weather/?city=London
 
 ## API
 
-
 | Endpoint             | Description             |
 | -------------------- | ----------------------- |
 | GET /health/         | DB + Redis health check |
@@ -31,3 +30,4 @@ curl http://localhost:8000/weather/?city=London
 - Redis 
 - SQLAlchemy 
 - Docker
+- slowapi
