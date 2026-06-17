@@ -10,7 +10,7 @@ FastAPI weather app with current conditions and 7-day forecasts.
 
 ## Quick Start
 ```bash
-git clone <url>
+git clone https://github.com/aotyty/weather.git
 cd weather
 docker compose up -d
 curl http://localhost:8000/weather/?city=London
