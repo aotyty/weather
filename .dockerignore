@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+dump.rdb
+tests/
+README.md
+LICENSE
