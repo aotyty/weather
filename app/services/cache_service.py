@@ -1,14 +1,14 @@
+from app.config import settings
+
 import redis.asyncio as redis
 import logging
 import json
-import os
 
 logger = logging.getLogger(__name__)
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 CACHE_TTL = 600
 
-redis_client = redis.from_url(REDIS_URL)
+redis_client = redis.from_url(settings.redis_url)
 
 async def get_cached(key: str) -> dict | None:
     try: 
